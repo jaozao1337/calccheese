@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CalcCheese</title>
+    <!-- Ícone da Aba (Favicon) -->
+    <link rel="icon" type="image/png" href="http://googleusercontent.com/file_content/1">
     <!-- Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +38,18 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        /* Animação para o spinner de carregamento */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #facc15; /* yellow-400 */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
     </style>
 </head>
@@ -95,6 +109,23 @@
         </div>
     </div>
 
+    <!-- Modal para exibir os resultados do Gemini (NOVO) -->
+    <div id="gemini_modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300 ease-in-out">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 md:p-8 modal-content transform transition-all duration-300 ease-in-out scale-95">
+            <div id="modal_header" class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-yellow-900">Dica do Chef</h2>
+                <button id="close_modal_btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <div id="gemini_result" class="text-gray-700 space-y-4 prose max-w-none">
+                <!-- O conteúdo do Gemini será inserido aqui -->
+            </div>
+             <div id="gemini_loading" class="flex flex-col items-center justify-center p-8 space-y-4">
+                <div class="spinner"></div>
+                <p class="text-yellow-800">A consultar o chef...</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- Seletores de Elementos ---
         const valorKgInput = document.getElementById('valor_kg');
@@ -116,20 +147,24 @@
 
         const historyList = document.getElementById('history_list');
 
+        // Elementos do Modal Gemini
+        const geminiModal = document.getElementById('gemini_modal');
+        const closeModalBtn = document.getElementById('close_modal_btn');
+        const geminiResultDiv = document.getElementById('gemini_result');
+        const geminiLoadingDiv = document.getElementById('gemini_loading');
+
         // --- Variáveis de Estado ---
         let currentMode = 'queijo';
         let calculationHistory = [];
-        let historyTimer; // Timer para o histórico
+        let historyTimer; 
 
         // --- Lógica da Calculadora e Histórico ---
         function calcularPreco() {
-            // Limpa o timer anterior sempre que uma nova tecla é pressionada
             clearTimeout(historyTimer);
 
             const valorPorKg = parseFloat(valorKgInput.value) || 0;
             const pesoEmGramas = parseFloat(pesoGInput.value) || 0;
             
-            // Atualiza o resultado em tempo real
             if (pesoEmGramas <= 0) {
                 resultadoDiv.textContent = 'R$ 0,00';
                 return;
@@ -140,7 +175,6 @@
             
             resultadoDiv.textContent = valorFormatado;
             
-            // Define um novo timer. O histórico só será atualizado após 3 segundos de inatividade.
             historyTimer = setTimeout(() => {
                 const newHistoryItem = {
                     mode: currentMode,
@@ -152,7 +186,7 @@
                 if (!lastHistory || lastHistory.peso !== newHistoryItem.peso || lastHistory.valor !== newHistoryItem.valor) {
                     addToHistory(newHistoryItem);
                 }
-            }, 3000); // 3 segundos de espera
+            }, 3000);
         }
 
         function addToHistory(item) {
@@ -172,14 +206,23 @@
 
             calculationHistory.forEach(item => {
                 const itemEmoji = item.mode === 'queijo' ? '🧀' : '🧈';
+                const itemType = item.mode === 'queijo' ? 'Queijo' : 'Manteiga';
                 const itemColor = item.mode === 'queijo' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800';
                 const historyItemDiv = document.createElement('div');
                 historyItemDiv.className = `history-item flex justify-between items-center p-3 rounded-lg ${itemColor}`;
                 historyItemDiv.innerHTML = `
-                    <span class="font-medium">${itemEmoji} ${item.peso}g</span>
+                    <div class="flex items-center">
+                        <span class="font-medium">${itemEmoji} ${item.peso}g</span>
+                        <button class="gemini-btn ml-3 text-lg hover:scale-125 transition-transform" data-type="${itemType}" data-peso="${item.peso}">✨</button>
+                    </div>
                     <span class="font-bold text-lg">${item.valor}</span>
                 `;
                 historyList.appendChild(historyItemDiv);
+            });
+            
+            // Adiciona event listeners aos novos botões do Gemini
+            document.querySelectorAll('.gemini-btn').forEach(btn => {
+                btn.addEventListener('click', handleGeminiClick);
             });
         }
 
@@ -215,11 +258,91 @@
             resultadoCard.classList.remove(oldTheme.resultadoBg); resultadoCard.classList.add(theme.resultadoBg);
             resultadoLabel.classList.remove(oldTheme.resultadoText); resultadoLabel.classList.add(theme.resultadoText);
 
-            // Limpa o campo de peso e o histórico ao mudar de modo
             pesoGInput.value = '';
             calculationHistory = [];
             renderHistory();
             calcularPreco();
+        }
+        
+        // --- Lógica do Modal Gemini (NOVO) ---
+        function openModal() {
+            const modalContent = geminiModal.querySelector('.modal-content');
+            geminiModal.classList.remove('hidden');
+            setTimeout(() => {
+                geminiModal.classList.remove('opacity-0');
+                if (modalContent) modalContent.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modalContent = geminiModal.querySelector('.modal-content');
+            geminiModal.classList.add('opacity-0');
+            if (modalContent) modalContent.classList.add('scale-95');
+            setTimeout(() => geminiModal.classList.add('hidden'), 300);
+        }
+        
+        function handleGeminiClick(event) {
+            const type = event.target.dataset.type;
+            const peso = event.target.dataset.peso;
+            getGeminiSuggestion(type, peso);
+        }
+
+        async function getGeminiSuggestion(type, peso) {
+            openModal();
+            geminiResultDiv.innerHTML = '';
+            geminiLoadingDiv.classList.remove('hidden');
+
+            const prompt = `Você é um chef de cozinha amigável e criativo. Dê uma sugestão de receita ou harmonização para ${peso} gramas de ${type}. A sugestão deve ser curta, prática e fácil de entender. Formate a resposta em HTML simples, usando um título <h3> e parágrafos <p>.`;
+            
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                // CORRIGIDO: Obter a resposta como texto primeiro para evitar erros de parse
+                const rawResponse = await response.text();
+
+                if (!response.ok) {
+                    let errorDetails = `Erro na API: ${response.status} ${response.statusText}`;
+                    if (rawResponse) {
+                        try {
+                            const errorJson = JSON.parse(rawResponse);
+                            errorDetails = errorJson?.error?.message || errorDetails;
+                        } catch (e) {
+                            // O corpo da resposta de erro não era JSON, usar o status text
+                        }
+                    }
+                    throw new Error(errorDetails);
+                }
+
+                if (!rawResponse) {
+                    throw new Error("Não foi possível obter uma sugestão. A resposta da API estava vazia.");
+                }
+                
+                const result = JSON.parse(rawResponse);
+                
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    geminiResultDiv.innerHTML = result.candidates[0].content.parts[0].text;
+                } else {
+                    const finishReason = result.candidates?.[0]?.finishReason;
+                    if (finishReason === 'SAFETY') {
+                         geminiResultDiv.innerHTML = `<p class="text-orange-500 text-center">A sua sugestão foi bloqueada por motivos de segurança. Tente um pedido diferente.</p>`;
+                    } else {
+                        throw new Error("Não foi possível obter uma sugestão. A resposta da API estava vazia ou malformada.");
+                    }
+                }
+            } catch (error) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                geminiResultDiv.innerHTML = `<p class="text-red-500 text-center">Desculpe, não consegui contactar o chef no momento.<br><span class="text-sm text-gray-500">Detalhe: ${error.message}</span></p>`;
+            } finally {
+                geminiLoadingDiv.classList.add('hidden');
+            }
         }
 
         // --- Event Listeners ---
@@ -231,6 +354,10 @@
             pesoGInput.value = '';
             calcularPreco();
             pesoGInput.focus();
+        });
+        closeModalBtn.addEventListener('click', closeModal);
+        geminiModal.addEventListener('click', (event) => {
+            if (event.target === geminiModal) closeModal();
         });
 
         // --- Inicialização ---
