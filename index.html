@@ -293,7 +293,7 @@
             const prompt = `Você é um chef de cozinha amigável e criativo. Dê uma sugestão de receita ou harmonização para ${peso} gramas de ${type}. A sugestão deve ser curta, prática e fácil de entender. Formate a resposta em HTML simples, usando um título <h3> e parágrafos <p>.`;
             
             // IMPORTANTE: Cole a sua chave da API do Google AI Studio aqui
-            const apiKey = "AIzaSyBjcpm5s8T-n86A0GkvJmUViMyj8L8dkYc"; 
+            const apiKey = "AIzaSyB8DEuOcAad3AGQt-Yude4-B83l8ZFayzE"; 
             
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
