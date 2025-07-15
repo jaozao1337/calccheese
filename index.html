@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Queijo</title>
-    <!-- Tailwind CSS para estilização rápida e responsiva -->
+    <title>Calculadora de Frios</title>
+    <!-- Tailwind CSS para estilizaÃ§Ã£o rÃ¡pida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,88 +13,229 @@
         /* Estilo base para garantir boa legibilidade */
         body {
             font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent; /* Remove o destaque azul ao tocar em elementos */
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.4s ease;
         }
-        /* Melhora a aparência dos inputs numéricos em navegadores WebKit/Blink */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
+        /* Melhora a aparÃªncia dos inputs numÃ©ricos */
+        input::-webkit-inner-spin-button,
+        input::-webkit-outer-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
         input[type="number"] {
-            -moz-appearance: textfield; /* Para Firefox */
+            -moz-appearance: textfield;
+        }
+        /* Estilos para transiÃ§Ãµes suaves */
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+        /* AnimaÃ§Ã£o para o histÃ³rico */
+        .history-item {
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="bg-yellow-50 flex items-center justify-center min-h-screen">
+<body id="app_body" class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white shadow-xl rounded-2xl p-6 md:p-8 w-full max-w-md mx-4">
+    <div class="w-full max-w-md mx-auto">
+        <div id="main_card" class="bg-white shadow-xl rounded-2xl p-6 md:p-8 w-full transition-all">
 
-        <!-- Título do Aplicativo -->
-        <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-yellow-900">Calculadora de Queijo</h1>
-            <p class="text-yellow-700 mt-1">Para a Vovo</p>
-        </header>
-
-        <main class="space-y-6">
-            <!-- Campo: Valor por Quilo -->
-            <div>
-                <label for="valor_kg" class="block text-xl font-medium text-yellow-800 mb-2">Valor por Quilo (R$)</label>
-                <input type="number" id="valor_kg" value="30.00" 
-                       class="w-full text-3xl md:text-4xl p-4 border-2 border-yellow-400 rounded-lg text-center text-gray-800 bg-yellow-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 transition">
+            <!-- Seletor de Modo -->
+            <div class="flex border border-gray-200 rounded-lg p-1 mb-6 bg-gray-100">
+                <button id="btn_queijo" class="w-1/2 p-2 rounded-md text-lg font-bold transition-all">ðŸ§€ Queijo</button>
+                <button id="btn_manteiga" class="w-1/2 p-2 rounded-md text-lg font-bold transition-all">ðŸ§ˆ Manteiga</button>
             </div>
 
-            <!-- Campo: Peso em Gramas -->
-            <div>
-                <label for="peso_g" class="block text-xl font-medium text-yellow-800 mb-2">Peso do Queijo (gramas)</label>
-                <input type="number" id="peso_g" placeholder="ex: 250"
-                       class="w-full text-3xl md:text-4xl p-4 border-2 border-yellow-400 rounded-lg text-center text-gray-800 bg-yellow-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 transition">
-            </div>
+            <!-- TÃ­tulo do Aplicativo -->
+            <header class="text-center mb-6">
+                <h1 id="app_title" class="text-4xl md:text-5xl font-bold transition-all"></h1>
+                <p id="app_subtitle" class="mt-1 transition-all">Para a VovÃ³</p>
+            </header>
 
-            <!-- Seção de Resultado -->
-            <div class="bg-yellow-400 rounded-xl mt-8 p-6 text-center">
-                <p class="text-xl font-medium text-yellow-900">Valor a Pagar:</p>
-                <div id="resultado" class="text-5xl md:text-6xl font-bold text-white mt-2" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">
-                    R$ 0,00
+            <main class="space-y-5">
+                <!-- Campo: Valor por Quilo -->
+                <div>
+                    <label for="valor_kg" class="block text-xl font-medium mb-2 transition-all">Valor por Quilo (R$)</label>
+                    <input type="number" id="valor_kg"
+                           class="w-full text-3xl md:text-4xl p-4 border-2 rounded-lg text-center text-gray-800 focus:bg-white focus:outline-none transition-all">
                 </div>
-            </div>
-        </main>
 
+                <!-- Campo: Peso em Gramas com BotÃ£o Limpar -->
+                <div>
+                    <label id="peso_label" for="peso_g" class="block text-xl font-medium mb-2 transition-all"></label>
+                    <div class="relative">
+                        <input type="number" id="peso_g" placeholder="ex: 250"
+                               class="w-full text-3xl md:text-4xl p-4 border-2 rounded-lg text-center text-gray-800 focus:bg-white focus:outline-none transition-all">
+                        <button id="btn_limpar" class="absolute top-1/2 right-4 transform -translate-y-1/2 text-2xl text-gray-400 hover:text-gray-600 transition-all">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- SeÃ§Ã£o de Resultado -->
+                <div id="resultado_card" class="rounded-xl mt-6 p-5 text-center transition-all">
+                    <p id="resultado_label" class="text-xl font-medium transition-all">Valor a Pagar:</p>
+                    <div id="resultado" class="text-5xl md:text-6xl font-bold text-white mt-1" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.2);">
+                        R$ 0,00
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- SeÃ§Ã£o de HistÃ³rico -->
+        <div id="history_section" class="mt-6">
+            <h3 class="text-xl font-bold text-center mb-3 text-gray-600">Ãšltimas Pesagens</h3>
+            <div id="history_list" class="space-y-2">
+                <!-- Itens do histÃ³rico serÃ£o inseridos aqui -->
+            </div>
+        </div>
     </div>
 
     <script>
-        // Seleciona os elementos do HTML que vamos usar
+        // --- Seletores de Elementos ---
         const valorKgInput = document.getElementById('valor_kg');
         const pesoGInput = document.getElementById('peso_g');
         const resultadoDiv = document.getElementById('resultado');
+        const btnLimpar = document.getElementById('btn_limpar');
+        
+        const btnQueijo = document.getElementById('btn_queijo');
+        const btnManteiga = document.getElementById('btn_manteiga');
+        const appTitle = document.getElementById('app_title');
+        const appSubtitle = document.getElementById('app_subtitle');
+        const pesoLabel = document.getElementById('peso_label');
+        
+        const appBody = document.getElementById('app_body');
+        const inputs = document.querySelectorAll('input[type="number"]');
+        const labels = document.querySelectorAll('main label');
+        const resultadoCard = document.getElementById('resultado_card');
+        const resultadoLabel = document.getElementById('resultado_label');
 
-        // Função para calcular e mostrar o preço final
+        const historyList = document.getElementById('history_list');
+
+        // --- VariÃ¡veis de Estado ---
+        let currentMode = 'queijo';
+        let calculationHistory = [];
+        let historyTimer; // Timer para o histÃ³rico
+
+        // --- LÃ³gica da Calculadora e HistÃ³rico ---
         function calcularPreco() {
-            // Pega os valores dos campos. Se estiverem vazios, considera como 0.
-            // Usa parseFloat para tratar os números com casas decimais.
+            // Limpa o timer anterior sempre que uma nova tecla Ã© pressionada
+            clearTimeout(historyTimer);
+
             const valorPorKg = parseFloat(valorKgInput.value) || 0;
             const pesoEmGramas = parseFloat(pesoGInput.value) || 0;
+            
+            // Atualiza o resultado em tempo real
+            if (pesoEmGramas <= 0) {
+                resultadoDiv.textContent = 'R$ 0,00';
+                return;
+            }
 
-            // Lógica do cálculo: (peso / 1000) para converter gramas para quilos, e multiplica pelo valor do quilo
             const valorFinal = (pesoEmGramas / 1000) * valorPorKg;
-
-            // Formata o resultado final como moeda brasileira (R$ 0,00)
-            const valorFormatado = valorFinal.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
-
-            // Atualiza o texto na tela com o valor calculado
+            const valorFormatado = valorFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
             resultadoDiv.textContent = valorFormatado;
+            
+            // Define um novo timer. O histÃ³rico sÃ³ serÃ¡ atualizado apÃ³s 3 segundos de inatividade.
+            historyTimer = setTimeout(() => {
+                const newHistoryItem = {
+                    mode: currentMode,
+                    peso: pesoEmGramas,
+                    valor: valorFormatado
+                };
+
+                const lastHistory = calculationHistory[0];
+                if (!lastHistory || lastHistory.peso !== newHistoryItem.peso || lastHistory.valor !== newHistoryItem.valor) {
+                    addToHistory(newHistoryItem);
+                }
+            }, 3000); // 3 segundos de espera
         }
 
-        // Adiciona "escutadores" de eventos aos campos de input.
-        // O cálculo será refeito toda vez que o usuário digitar algo.
+        function addToHistory(item) {
+            calculationHistory.unshift(item);
+            if (calculationHistory.length > 3) {
+                calculationHistory.pop();
+            }
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = '';
+            if (calculationHistory.length === 0) {
+                historyList.innerHTML = `<p class="text-center text-gray-500">Nenhum cÃ¡lculo ainda.</p>`;
+                return;
+            }
+
+            calculationHistory.forEach(item => {
+                const itemEmoji = item.mode === 'queijo' ? 'ðŸ§€' : 'ðŸ§ˆ';
+                const itemColor = item.mode === 'queijo' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800';
+                const historyItemDiv = document.createElement('div');
+                historyItemDiv.className = `history-item flex justify-between items-center p-3 rounded-lg ${itemColor}`;
+                historyItemDiv.innerHTML = `
+                    <span class="font-medium">${itemEmoji} ${item.peso}g</span>
+                    <span class="font-bold text-lg">${item.valor}</span>
+                `;
+                historyList.appendChild(historyItemDiv);
+            });
+        }
+
+        // --- LÃ³gica para Mudar o Modo (Queijo/Manteiga) ---
+        function setMode(newMode) {
+            currentMode = newMode;
+            
+            const themes = {
+                queijo: { title: 'Calculadora de Queijo', pesoLabel: 'Peso do Queijo (gramas)', valorKg: '30.00', bodyClass: 'bg-yellow-50', textClass: 'text-yellow-900', subtitleClass: 'text-yellow-700', inputBorder: 'border-yellow-300', inputBg: 'bg-yellow-100', inputFocusRing: 'focus:ring-yellow-500', btnActive: 'bg-yellow-400 text-white shadow', btnInactive: 'bg-transparent text-gray-500', resultadoBg: 'bg-yellow-400', resultadoText: 'text-yellow-900' },
+                manteiga: { title: 'Calculadora de Manteiga', pesoLabel: 'Peso da Manteiga (gramas)', valorKg: '25.00', bodyClass: 'bg-blue-50', textClass: 'text-blue-900', subtitleClass: 'text-blue-700', inputBorder: 'border-blue-300', inputBg: 'bg-blue-100', inputFocusRing: 'focus:ring-blue-500', btnActive: 'bg-blue-500 text-white shadow', btnInactive: 'bg-transparent text-gray-500', resultadoBg: 'bg-blue-400', resultadoText: 'text-blue-900' }
+            };
+            
+            const theme = themes[newMode];
+            const oldTheme = themes[newMode === 'queijo' ? 'manteiga' : 'queijo'];
+
+            appTitle.textContent = theme.title;
+            pesoLabel.textContent = theme.pesoLabel;
+            valorKgInput.value = theme.valorKg;
+
+            appBody.classList.remove(oldTheme.bodyClass); appBody.classList.add(theme.bodyClass);
+            
+            const activeBtn = newMode === 'queijo' ? btnQueijo : btnManteiga;
+            const inactiveBtn = newMode === 'queijo' ? btnManteiga : btnQueijo;
+            activeBtn.className = `w-1/2 p-2 rounded-md text-lg font-bold transition-all ${theme.btnActive}`;
+            inactiveBtn.className = `w-1/2 p-2 rounded-md text-lg font-bold transition-all ${theme.btnInactive}`;
+
+            appTitle.classList.remove(oldTheme.textClass); appTitle.classList.add(theme.textClass);
+            appSubtitle.classList.remove(oldTheme.subtitleClass); appSubtitle.classList.add(theme.subtitleClass);
+            
+            labels.forEach(label => { label.classList.remove(oldTheme.textClass); label.classList.add(theme.textClass); });
+            inputs.forEach(input => { input.classList.remove(oldTheme.inputBorder, oldTheme.inputBg, oldTheme.inputFocusRing); input.classList.add(theme.inputBorder, theme.inputBg, theme.inputFocusRing); });
+            
+            resultadoCard.classList.remove(oldTheme.resultadoBg); resultadoCard.classList.add(theme.resultadoBg);
+            resultadoLabel.classList.remove(oldTheme.resultadoText); resultadoLabel.classList.add(theme.resultadoText);
+
+            // Limpa o campo de peso e o histÃ³rico ao mudar de modo
+            pesoGInput.value = '';
+            calculationHistory = [];
+            renderHistory();
+            calcularPreco();
+        }
+
+        // --- Event Listeners ---
         valorKgInput.addEventListener('input', calcularPreco);
         pesoGInput.addEventListener('input', calcularPreco);
+        btnQueijo.addEventListener('click', () => setMode('queijo'));
+        btnManteiga.addEventListener('click', () => setMode('manteiga'));
+        btnLimpar.addEventListener('click', () => {
+            pesoGInput.value = '';
+            calcularPreco();
+            pesoGInput.focus();
+        });
 
-        // Chama a função uma vez no início para garantir que o valor inicial (R$ 0,00) seja exibido.
-        calcularPreco();
+        // --- InicializaÃ§Ã£o ---
+        setMode('queijo');
+        renderHistory();
     </script>
 
 </body>
